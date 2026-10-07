@@ -1,0 +1,28 @@
+name: Build JAR
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build
+        run: |
+          GR=$(find . -maxdepth 3 -name gradlew | head -n1)
+          echo "Tìm thấy gradlew ở: $GR"
+          cd "$(dirname "$GR")"
+          chmod +x gradlew
+          ./gradlew build -x test
+      - name: Collect JAR
+        run: |
+          mkdir -p out
+          cp $(find . -path "*/build/libs/skibidi-debug-*.jar" ! -name "*-sources.jar" ! -name "*-dev.jar") out/
+          ls -la out/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mod-jar
+          path: out/*.jar
+          if-no-files-found: error
